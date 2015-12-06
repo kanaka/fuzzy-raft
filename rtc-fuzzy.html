@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <title>Raft over webRTC</title>
+    <link rel="stylesheet" type="text/css" href="web/demo.css"/>
+</head>
+<body>
+    <header><h1>Raft Distributed Consensus Algorithm over webRTC with Fuzzy Election Timer Updates</h1></header>
+    <br>
+    Create more nodes using this link: <a id="node_link" href="" target="_blank">Loading</a>
+    <br><br>
+    <table border=1 style="width: 100%">
+        <tr>
+            <td>
+                Term
+            </td>
+            <td>
+                State
+            </td>
+            <td>
+                Cluster Size
+            </td>
+            <td>
+                Log Length
+            </td>
+            <td>
+                Request Votes Sent/Received
+            </td>
+            <td>
+                Append Entries Sent/Received
+            </td>
+        </tr>
+        <tr>
+            <td id=term>
+                &nbsp;
+            </td>
+            <td id=state>
+                &nbsp;
+            </td>
+            <td id=cluster_size>
+                &nbsp;
+            </td>
+            <td id=log_length>
+                &nbsp;
+            </td>
+            <td id=rv_count>
+                &nbsp;
+            </td>
+            <td id=ae_count>
+                &nbsp;
+            </td>
+        </tr>
+    </table>
+    <div>
+        <textarea id='messages' rows=20></textarea>
+    </div>
+    <!--<script src="http://cdn.peerjs.com/0.3/peer.js"></script>-->
+    <!--<script src="https://skyway.io/dist/0.3/peer.js"></script>-->
+    <script type="text/javascript" src="peer.js"></script>
+    <script type="text/javascript" src="jquery-2.1.3.min.js"></script>
+    <script type="text/javascript" src="base.js"></script>
+    <script type="text/javascript" src="local.js"></script>
+    <script type="text/javascript" src="rtc-fuzzy.js"></script>
+    <script type="text/javascript">
+        window.onload = function () {
+            if (location.queryParams.paused) {
+                startRtc({});
+            } else {
+                startRtc({}, startRaft);
+            }
+        }
+    </script>
+
+    <script>
+        if (location.queryParams.twst_address) {
+            console.log("rtc-fuzzy.html: loading twst_client.js");
+            document.write('<script src="/node_modules/twst/twst_client.js"><\/script>');
+        }
+    </script>
+</body>
+</html>

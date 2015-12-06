@@ -73,6 +73,8 @@ function RaftServerBase(id, opts) {
         return clearTimeout(id); });
     setDefault(opts, 'clientRequestResponse', function(args) {
         console.warn("ignoring clientRequestResponse"); });
+    setDefault(opts, 'candidateCallback', function(args) {
+        console.warn("ignoring candidateCallback"); });
     if (typeof opts.saveFn === 'undefined') {
         console.warn("no saveFn, server recovery will not work");
         opts.saveFn = function(data, callback) {
@@ -488,6 +490,8 @@ function RaftServerBase(id, opts) {
                  candidateId: id, 
                  lastLogIndex: self.log.length-1,
                  lastLogTerm: self.log[self.log.length-1].term});
+
+        opts.candidateCallback(self)
     }
 
     // We are terminating either as a result of being removed by
