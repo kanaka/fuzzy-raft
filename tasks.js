@@ -97,7 +97,7 @@ function Tasks(opts) {
         return tasks;
     };
 
-    // Return the task queue
+    // Display the task queue
     api.show = function() {
         console.log("Current time: " + curTime + "ms");
         for (var i = 0; i < tasks.length; i++) {

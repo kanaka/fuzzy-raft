@@ -50,6 +50,7 @@ function RaftServerBase(id, opts) {
     // Sanity check options and set defaults
     //
     opts = opts || {};
+    self.opts = opts;
 
     if (typeof id === 'undefined' || !opts.sendRPC || !opts.applyCmd) {
         throw new Error("id, opts.sendRPC and opts.applyCmd required");
@@ -71,10 +72,19 @@ function RaftServerBase(id, opts) {
         return setTimeout(fn, ms); });
     setDefault(opts, 'unschedule',        function(id) {
         return clearTimeout(id); });
+    setDefault(opts, 'currentTime',        function() {
+        return new Date().getTime(); });
     setDefault(opts, 'clientRequestResponse', function(args) {
         console.warn("ignoring clientRequestResponse"); });
-    setDefault(opts, 'candidateCallback', function(args) {
-        console.warn("ignoring candidateCallback"); });
+
+    setDefault(opts, 'requestVoteCallback', function(args) {
+        console.warn("ignoring requestVoteCallback"); });
+    setDefault(opts, 'requestVoteResponseCallback', function(args) {
+        console.warn("ignoring requestVoteResponseCallback"); });
+    setDefault(opts, 'appendEntriesCallback', function(args) {
+        console.warn("ignoring appendEntriesCallback"); });
+    setDefault(opts, 'appendEntriesResponseCallback', function(args) {
+        console.warn("ignoring appendEntriesResponseCallback"); });
     if (typeof opts.saveFn === 'undefined') {
         console.warn("no saveFn, server recovery will not work");
         opts.saveFn = function(data, callback) {
@@ -386,7 +396,8 @@ function RaftServerBase(id, opts) {
                      entries: nentries,
                      leaderCommit: self.commitIndex,
                      // NOTE: These are additions to the basic Raft algorithm
-                     curAgreeIndex: self.log.length-1});
+                     curAgreeIndex: self.log.length-1,
+                     time: opts.currentTime()});
         }
         // we may be called directly so cancel any outstanding timer
         opts.unschedule(heartbeat_timer);
@@ -489,9 +500,8 @@ function RaftServerBase(id, opts) {
                 {term: self.currentTerm,
                  candidateId: id, 
                  lastLogIndex: self.log.length-1,
-                 lastLogTerm: self.log[self.log.length-1].term});
-
-        opts.candidateCallback(self)
+                 lastLogTerm: self.log[self.log.length-1].term,
+                 time: opts.currentTime()});
     }
 
     // We are terminating either as a result of being removed by
@@ -533,8 +543,10 @@ function RaftServerBase(id, opts) {
                     {term: self.currentTerm,
                      voteGranted: false,
                      // addition
-                     sourceId: id});
+                     sourceId: id,
+                     time: opts.currentTime()});
             });
+            opts.requestVoteCallback(self, args);
             return;
         }
         // 2. if votedFor is null or candidateId, and candidate's log
@@ -556,8 +568,10 @@ function RaftServerBase(id, opts) {
                     {term: self.currentTerm,
                      voteGranted: true,
                      // addition
-                     sourceId: id});
+                     sourceId: id,
+                     time: opts.currentTime()});
             });
+            opts.requestVoteCallback(self, args);
             return;
         }
 
@@ -566,8 +580,10 @@ function RaftServerBase(id, opts) {
                 {term: self.currentTerm,
                  voteGranted: false,
                  // addition
-                 sourceId: id});
+                 sourceId: id,
+                 time: opts.currentTime()});
         });
+        opts.requestVoteCallback(self, args);
         return;
     }
 
@@ -580,6 +596,7 @@ function RaftServerBase(id, opts) {
             // Does this happen? How?
             update_term(args.term);
             step_down(); // step down from candidate or leader
+            opts.requestVoteResponseCallback(self, args);
             return;
         }
 
@@ -587,6 +604,7 @@ function RaftServerBase(id, opts) {
         if ((self.state !== 'candidate') ||
             (args.term < self.currentTerm)) {
             // ignore
+            opts.requestVoteResponseCallback(self, args);
             return;
         }
         if (args.voteGranted) {
@@ -598,6 +616,8 @@ function RaftServerBase(id, opts) {
         if (check_vote(self.serverMap, votesGranted)) {
             become_leader();
         }
+
+        opts.requestVoteResponseCallback(self, args);
     }
 
     // appendEntries RPC (Figure 3.2)
@@ -622,8 +642,10 @@ function RaftServerBase(id, opts) {
                      success: false,
                      // NOTE: These are additions to the basic Raft algorithm
                      sourceId: id,
-                     curAgreeIndex: args.curAgreeIndex});
+                     curAgreeIndex: args.curAgreeIndex,
+                     time: opts.currentTime()});
             });
+            opts.appendEntriesCallback(self, args);
             return;
         }
         // if candidate or leader, step down
@@ -650,8 +672,10 @@ function RaftServerBase(id, opts) {
                      success: false,
                      // NOTE: These are additions to the basic Raft algorithm.
                      sourceId: id,
-                     curAgreeIndex: args.curAgreeIndex});
+                     curAgreeIndex: args.curAgreeIndex,
+                     time: opts.currentTime()});
             });
+            opts.appendEntriesCallback(self, args);
             return;
         }
         // 3. If existing entry conflicts with new entry (same index
@@ -681,8 +705,10 @@ function RaftServerBase(id, opts) {
                  success: true,
                  // NOTE: These are additions to the basic Raft algorithm
                  sourceId: id,
-                 curAgreeIndex: args.curAgreeIndex});
+                 curAgreeIndex: args.curAgreeIndex,
+                 time: opts.currentTime()});
         });
+        opts.appendEntriesCallback(self, args);
     }
 
     function appendEntriesResponse(args) {
@@ -693,6 +719,7 @@ function RaftServerBase(id, opts) {
             // Does this happen? How?
             update_term(args.term);
             step_down(); // step down from candidate or leader
+            opts.appendEntriesResponseCallback(self, args);
             return;
         }
 
@@ -717,6 +744,8 @@ function RaftServerBase(id, opts) {
             }
             // TODO: resend immediately
         }
+
+        opts.appendEntriesResponseCallback(self, args);
     }
 
     // addServer (Figure 4.1)
@@ -918,6 +947,7 @@ function RaftServerBase(id, opts) {
     if (opts.debug) {
         api._self = self;
         api._step_down = step_down;
+        api._reset_election_timer = reset_election_timer;
         api._start_election = start_election;
         api._terminate = terminate;
     }

@@ -1,15 +1,13 @@
-#!/usr/bin/env node
-
 "use strict"
 
 if (typeof module === 'undefined') {
-    var fuzzy = {},
-        exports = fuzzy
+    var graph = {},
+        exports = graph
+} else {
+    var Canvas = require('canvas'),
+        Chart = require('nchart'),
+        fs = require('fs');
 }
-
-var Canvas = require('canvas'),
-    Chart = require('nchart'),
-    fs = require('fs');
 
 var colors = [
     "151,187,205",
@@ -23,9 +21,8 @@ var colors = [
     "255,192,128",
     "220,220,220"];
 
-function line(file, labels, data, opts) {
-    var canvas = new Canvas(800, 800),
-        ctx = canvas.getContext('2d'),
+function lineChart(canvas, labels, data, opts) {
+    var ctx = canvas.getContext('2d'),
         lopts = {
             pointStrokeColor: "#fff",
             pointHighlightFill: "#fff",
@@ -49,11 +46,16 @@ function line(file, labels, data, opts) {
     }
 
     new Chart(ctx).Line({labels: labels, datasets: datasets}, lopts);
+}
 
+function lineChartFile(file, labels, data, opts) {
+    var canvas = new Canvas(800, 800);
+    lineChart(canvas, labels, data, opts);
     canvas.toBuffer(function (err, buf) {
         if (err) throw err;
         fs.writeFile(file, buf);
     });
 }
 
-exports.line = line
+exports.lineChart = lineChart;
+exports.lineChartFile = lineChartFile;

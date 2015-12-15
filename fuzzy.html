@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <title>Raft Distributed Consensus with Dynamic Election Timer</title>
+    <link rel="stylesheet" type="text/css" href="web/demo.css"/>
+</head>
+<body>
+    <header><h1>Raft Distributed Consensus with Dynamic Fuzzy Logic Election Timer</h1></header>
+    <div class="two_column">
+        <div id="viz">
+            <svg id="svg"></svg>
+            <div id="divs"></div>
+        </div>
+        <div id="tasks">
+            <canvas id="canvas0" width="400" height="200"></canvas>
+            <br>
+            <input id='stepButton' value="Step" type='button' />
+            by <input id='stepAmount' value="1" min="1" type='number' /> step(s)<br>
+            <br>
+            Steps/sec: <input id='stepsPerSecond' value="5" min="1" type='number' /><br>
+            <br>
+            RPC latency Min: <input id='rpcLatencyMin' value="8" min="1" type='number' />
+                        Max: <input id='rpcLatencyMax' value="12" min="1" type='number' /><br>
+            <br>
+            <header><h2>Timeline:</h2></header>
+            <hr>
+            <ul id='taskList'>
+            </ul>
+            <hr>
+        </div>
+    </div>
+    <div>
+        <textarea id='messages' rows=20></textarea>
+    </div>
+    <script type="text/javascript" src="tasks.js"></script>
+    <script type="text/javascript" src="base.js"></script>
+    <script type="text/javascript" src="local.js"></script>
+    <script type="text/javascript" src="test_common.js"></script>
+    <script type="text/javascript" src="test_tasks.js"></script>
+    <script type="text/javascript" src="fuzzylogic.js"></script>
+    <script type="text/javascript" src="fuzzy.js"></script>
+
+    <script type="text/javascript" src="web/d3.v3.min.js"></script>
+    <script type="text/javascript" src="node_modules/nchart/Chart.js"></script>
+    <script type="text/javascript" src="graph.js"></script>
+    <script type="text/javascript" src="web/fuzzy_render.js"></script>
+</body>
+</html>

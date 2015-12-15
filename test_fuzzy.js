@@ -5,39 +5,41 @@ graph = require("./graph")
 
 ///////////////////
 
-i1 = fuzzy.infer(1, 10)
-i2 = fuzzy.infer(6, 10)
-i3 = fuzzy.infer(9, 10)
-i4 = fuzzy.infer(1, 90)
-i5 = fuzzy.infer(6, 90)
-i6 = fuzzy.infer(9, 90)
-i7 = fuzzy.infer(1, 130)
-i8 = fuzzy.infer(6, 130)
-i9 = fuzzy.infer(9, 130)
+i1 = fuzzy.infer(1, 3)
+i2 = fuzzy.infer(6, 3)
+i3 = fuzzy.infer(9, 3)
+i4 = fuzzy.infer(1, 9)
+i5 = fuzzy.infer(6, 9)
+i6 = fuzzy.infer(9, 9)
+i7 = fuzzy.infer(1, 21)
+i8 = fuzzy.infer(6, 21)
+i9 = fuzzy.infer(9, 21)
 
 
 
 deltas = []
 for(var x=0.0; x<20.0; x+=1) { deltas.push(x.toFixed(0)) }
 console.log(fuzzy.FEW);
-graph.line(__dirname + '/deltas.png', deltas,
+graph.lineChartFile(__dirname + '/deltas.png', deltas,
         [deltas.map(fuzzy.FEW),
          deltas.map(fuzzy.SOME),
          deltas.map(fuzzy.MANY)])
 
-speeds = []
-for(var x=0.0; x<1.0; x+=0.05) { speeds.push(x.toFixed(3)) }
-graph.line(__dirname + '/speeds.png', speeds,
-        [speeds.map(fuzzy.SLOWER),
-         speeds.map(fuzzy.SIMILAR),
-         speeds.map(fuzzy.FASTER)])
+sizes = []
+for(var x=1.0; x<41.0; x+=1) { sizes.push(x.toFixed(3)) }
+graph.lineChartFile(__dirname + '/sizes.png', sizes,
+        [sizes.map(fuzzy.VERYSMALL),
+         sizes.map(fuzzy.SMALL),
+         sizes.map(fuzzy.MEDIUM),
+         sizes.map(fuzzy.LARGE),
+         sizes.map(fuzzy.VERYLARGE)])
 
-timers = []
-for(var x=0.0; x<1.0; x+=0.05) { timers.push(x.toFixed(3)) }
-graph.line(__dirname + '/timer.png', timers,
-        [timers.map(i1), timers.map(i2), timers.map(i3),
-         timers.map(i4), timers.map(i5), timers.map(i6),
-         timers.map(i7), timers.map(i8), timers.map(i9)])
+times = []
+for(var x=0.5; x<1.5; x+=0.05) { times.push(x.toFixed(3)) }
+graph.lineChartFile(__dirname + '/times.png', times,
+        [times.map(i1), times.map(i2), times.map(i3),
+         times.map(i4), times.map(i5), times.map(i6),
+         times.map(i7), times.map(i8), times.map(i9)])
 
 console.log("i1 Bisect:", fuzzy.defuzzify(i1).toFixed(2));
 console.log("i2 Bisect:", fuzzy.defuzzify(i2).toFixed(2));

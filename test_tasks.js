@@ -9,6 +9,9 @@ function startServers(opts, n, msgCallback) {
     n = n || 5;
     msgCallback = msgCallback ||
                   function(msg) { console.log.call(console, msg); };
+    var opts = opts || {};
+    opts.rpcLatencyFn = opts.rpcLatencyFn || function () { return 10; }
+    opts.saveLatencyFn = opts.saveLatencyFn || function () { return 20; }
     var serverOpts = {};
     for (var i=0; i < n; i++) {
         serverOpts[i] = local.copyMap(opts);
@@ -81,7 +84,7 @@ function startServers(opts, n, msgCallback) {
                             src: sidx,
                             dst: nsid,
                             desc: "to " + sid};
-                sopts.schedule(newSendRPC, 10, data);
+                sopts.schedule(newSendRPC, opts.rpcLatencyFn(), data);
             };
             sopts.saveFn = function (data, callback) {
                 var newSaveFn = (function () {
@@ -91,7 +94,8 @@ function startServers(opts, n, msgCallback) {
                         origSaveFn(ndata, ncallback);
                     };
                 })();
-                sopts.schedule(newSaveFn, 20, {type:"saveFn"});
+                var data = {type:"saveFn"};
+                sopts.schedule(newSaveFn, opts.saveLatencyFn(), data);
             };
         })();
     }
