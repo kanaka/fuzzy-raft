@@ -48,7 +48,7 @@ header h2 {
 
 .node div {
     padding: 1px;
-    font-size: 0.9em;
+    /*font-size: 0.9em;*/
 }
 
 .node .name {
@@ -101,27 +101,3 @@ path.link.red {
 path.link.dashed {
     stroke-dasharray: 0,2 1;
 }
-
-input[type="number"] {
-    width: 40px;
-}
-
-.node .name input[type="button"] {
-    /*border: 2px #444;*/
-    padding: 0px;
-    margin: 0px;
-    display: block;
-    float: right;
-    font-size: 0.8em;
-}
-.node .etimer input[type="number"] {
-    width: 50px;
-    text-align: center;
-    border: 1px dotted #999;
-}
-.follower  .etimer input[type="number"] { background: #d5ffd5; }
-.follower  .name   input[type="button"] { background: #d5ffd5; }
-.candidate .etimer input[type="number"] { background: #ffd5d5; }
-.candidate .name   input[type="button"] { background: #ffd5d5; }
-.leader    .etimer input[type="number"] { background: #d5d5ff; }
-.leader    .name   input[type="button"] { background: #d5d5ff; }

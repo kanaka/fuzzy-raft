@@ -331,8 +331,10 @@ for (var i=0; i < nodes.length; i++) {
 
 // 100 most recent oneway ping times for each node
 var rpcLatencies = {};
+var defuzzedVals = [];
 for (var i=0; i<Object.keys(serverPool).length; i++) {
     rpcLatencies[i] = [];
+    defuzzedVals[i] = '___';
 }
 
 function resetNode(id) {
@@ -373,16 +375,20 @@ function rpcCallback(self, data) {
     self.opts.heartbeatTime = heartbeat_time;
     self.opts.electionTimeout = heartbeat_time * 5;
     //console.log("rpcLatencies:", JSON.stringify(rpcLatencies[id]));
-    console.log("id:", self.id, "term_delta:", term_delta,
-                "cluster_size:", cluster_size);
-    console.log("avg latency:", avg_latency,
-                "defuzzed val:", defuzzed);
-    console.log("heartbeatTime:", heartbeat_time,
-                "electionTimeout:", heartbeat_time * 5);
+    //console.log("id:", self.id, "term_delta:", term_delta,
+    //            "cluster_size:", cluster_size);
+    //console.log("avg latency:", avg_latency,
+    //            "defuzzed val:", defuzzed);
+    //console.log("heartbeatTime:", heartbeat_time,
+    //            "electionTimeout:", heartbeat_time * 5);
 
     // Update chart data and refresh the chart
     chartData[id] = chartTicks.map(infer_fn);
     graph.lineChart($D('canvas0'), chartTicks, chartData);
+    defuzzedVals[id] = defuzzed.toFixed(2);
+
+    var dspan = $D('defuzzy');
+    dspan.innerHTML = defuzzedVals.join("&nbsp;&nbsp;");
 }
 
 ////////////////////////
@@ -403,6 +409,20 @@ stepButton.onclick = function () {
     stepsPending = parseInt(document.getElementById('stepAmount').value);
     doSteps();
 };
+
+document.onkeyup = function (e) {
+    if ((e.keyCode === 39) || (e.keyCode === 40)) {
+        doSteps();
+        e.stopPropagation();
+        return false;
+    } else if (e.keyCode === 13) {
+        stepsPending = parseInt(document.getElementById('stepAmount').value);
+        doSteps();
+        e.stopPropagation();
+        return false;
+    }
+    return true;
+}
 
 updateTasks();
 updateD3();

@@ -4,6 +4,7 @@
     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
     <title>Raft Distributed Consensus with Dynamic Election Timer</title>
     <link rel="stylesheet" type="text/css" href="web/demo.css"/>
+    <link rel="stylesheet" type="text/css" href="web/fuzzy.css"/>
 </head>
 <body>
     <header><h1>Raft Distributed Consensus with Dynamic Fuzzy Logic Election Timer</h1></header>
@@ -11,27 +12,27 @@
         <div id="viz">
             <svg id="svg"></svg>
             <div id="divs"></div>
+            <div>
+                <textarea id='messages' rows=12></textarea>
+            </div>
         </div>
         <div id="tasks">
-            <canvas id="canvas0" width="400" height="200"></canvas>
-            <br>
+            <canvas id="canvas0" width="400" height="200"></canvas><br>
+            Defuzzified Values: <span id="defuzzy"></span><br>
+            <hr>
             <input id='stepButton' value="Step" type='button' />
-            by <input id='stepAmount' value="1" min="1" type='number' /> step(s)<br>
+            by <input id='stepAmount' value="1" min="1" type='number' /> step(s) [Press Enter]<br>
             <br>
             Steps/sec: <input id='stepsPerSecond' value="5" min="1" type='number' /><br>
             <br>
             RPC latency Min: <input id='rpcLatencyMin' value="8" min="1" type='number' />
                         Max: <input id='rpcLatencyMax' value="12" min="1" type='number' /><br>
-            <br>
-            <header><h2>Timeline:</h2></header>
             <hr>
+            <header><h2>Timeline:</h2></header>
             <ul id='taskList'>
             </ul>
             <hr>
         </div>
-    </div>
-    <div>
-        <textarea id='messages' rows=20></textarea>
     </div>
     <script type="text/javascript" src="tasks.js"></script>
     <script type="text/javascript" src="base.js"></script>
