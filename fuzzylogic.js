@@ -7,8 +7,8 @@ if (typeof module === 'undefined') {
 
 function Trapezoid(a, b, c, d) {
     return function(x) {
-        if      (x < a) { return 0.0 }
-        else if (x < b) { return (x-a) / (b-a) }
+        if      (x < a)  { return 0.0 }
+        else if (x < b)  { return (x-a) / (b-a) }
         else if (x <= c) { return 1.0 }
         else if (x < d)  { return (d-x) / (d-c) }
         else             { return 0.0 }
@@ -41,15 +41,12 @@ function AND(fn_list) {
     return ReduceWith(Math.min, fn_list)
 }
 
-//function NOT(fn_list) {
-//}
-
-function IF_THEN(input_val, output) {
-    //console.log("input_val:", input_val);
-    var min_fn = function(a, b) {
-        //console.log(input_val, a, b);
-        return Math.min(input_val, a, b) }
-    return ReduceWith(min_fn, [1.0, output])
+function IF_THEN(input, output) {
+    return function(x) {
+        var input_val = _call_or_const(input, x);
+        var min_fn = function(a, b) { return Math.min(input_val, a, b) }
+        return ReduceWith(min_fn, [1.0, output])(x);
+    }
 }
 
 
