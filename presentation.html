@@ -68,8 +68,15 @@
           </ul>
           <aside class="notes">
             <ul>
+              <li>Distributed Consensus: multiple systems agreeing on a value or
+              values. Fault tolerant to node failures and network
+              partitions.
+              <li>In Raft (and many other systems) the agreed on value
+              is a distributed state machine.
               <li>Raft was Diego Ongaro's PhD dissertation working
               with John Ousterhout.
+              <li>Much simpler than the most well known algorithm by
+              Leslie Lamport called Paxos.
               <li>Already in use in production (e.g. etcd and CoreOS)
             </ul>
           </aside>
@@ -104,7 +111,9 @@
           </ul>
           <aside class="notes">
             <ul>
-              <li>
+              <li>If node gets vote from a candidate with a newer term
+              than itself and it hasn't yet voted in that term then it
+              votes for the candidate.
             </ul>
           </aside>
         </section>
@@ -116,6 +125,8 @@
             <li>Leader replicates transaction log entries to other nodes
             <li>Leader commits an entry by replicating it to a majority of nodes
             <li>Once a log entry is committed it is then applied to the state machine
+            <li>A identical transaction log means that the state
+            machine will also be identical
           </ul>
           <aside class="notes">
             <ul>
@@ -153,6 +164,7 @@
           </ul>
           <aside class="notes">
             <ul>
+              <li>TIME: about 5 min
               <li>Demo: describe node and timeline
               <li>Demo: initialize sets name and schedules election
               timer
@@ -187,7 +199,7 @@
         <section>
           <h3>Raft.js + Fuzzy Logic Election Timer</h3>
           <ul>
-            <li>Add a time value to every RPC to measure latency
+            <li>Added a timstamp to every RPC to measure latency
             <li>Use fuzzy logic to generate coefficient (C) based on:
             <ul>
               <li>Cluster size
@@ -215,6 +227,7 @@
               <li>Might be CPU load on the leader due to intensive
               state machine operations causing the timeouts
               <li>Could be occasional delayed or dropped packets
+              <li>TIME NOTE: 10 min
             </ul>
           </aside>
         </section>
@@ -265,22 +278,22 @@ if (td in MANY) and (cs in VERYLARGE) then (C in SLOWER)
 
           <section>
             <img src="imgs/times_1_3.png"></img>
-            <p>term_delta = 1, cluster_size = 3, bisector: 0.65</p>
+            <p>term_delta = 1, cluster_size = 3, bisector: 1.30</p>
           </section>
 
           <section>
             <img src="imgs/times_3_3.png"></img>
-            <p>term_delta = 3, cluster_size = 3, bisector: 0.81</p>
+            <p>term_delta = 3, cluster_size = 3, bisector: 1.62</p>
           </section>
 
           <section>
             <img src="imgs/times_3_13.png"></img>
-            <p>term_delta = 3, cluster_size = 13, bisector: 1.00</p>
+            <p>term_delta = 3, cluster_size = 13, bisector: 2.00</p>
           </section>
 
           <section>
             <img src="imgs/times_9_21.png"></img>
-            <p>term_delta = 9, cluster_size = 21, bisector: 1.33</p>
+            <p>term_delta = 9, cluster_size = 21, bisector: 2.67</p>
           </section>
         </section>
 
@@ -474,8 +487,9 @@ fuzzy.defuzzify = function(f) {
           <div class="fragment">
           <hr>
           <ul>
-            <li><a href="http://kanaka.github.io/fuzzy-raft/presentation.html">http://kanaka.github.io/fuzzy-raft/presentation.html</a>
-            <li><a href="https://github.com/kanaka/fuzzy-raft">https://github.com/kanaka/fuzzy-raft</a>
+            <li><a href="http://raft.github.io/">raft.github.io</a>
+            <li><a href="http://kanaka.github.io/fuzzy-raft/presentation.html">kanaka.github.io/fuzzy-raft/presentation.html</a>
+            <li><a href="https://github.com/kanaka/fuzzy-raft">github.com/kanaka/fuzzy-raft</a>
           </ul>
           </div>
           <aside class="notes">
