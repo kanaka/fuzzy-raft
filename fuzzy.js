@@ -25,16 +25,16 @@ fuzzy.VERYLARGE = fuzzylogic.Trapezoid(29,38,Infinity,Infinity)
 
 // result:
 // multiplier on the base election timer
-fuzzy.FASTER  = fuzzylogic.Trapezoid(0.50, 0.50, 0.70, 0.90)
-fuzzy.SIMILAR = fuzzylogic.Trapezoid(0.70, 0.90, 1.10, 1.30)
-fuzzy.SLOWER  = fuzzylogic.Trapezoid(1.10, 1.30, 1.50, 1.50)
+fuzzy.FASTER  = fuzzylogic.Trapezoid(1.00, 1.00, 1.40, 1.80)
+fuzzy.SIMILAR = fuzzylogic.Trapezoid(1.40, 1.80, 2.20, 2.60)
+fuzzy.SLOWER  = fuzzylogic.Trapezoid(2.20, 2.60, 3.00, 3.00)
 
 fuzzy.infer = function (term_delta, cluster_size) {
-    var AND = fuzzylogic.AND,
+    var AND = fuzzylogic.AND, OR = fuzzylogic.OR,
         IF_THEN = fuzzylogic.IF_THEN, 
         f = fuzzy, td = term_delta, cs = cluster_size
 
-    return fl.OR([
+    return OR([
         IF_THEN(AND([f.FEW(td),  f.VERYSMALL(cs)]), f.FASTER),
         IF_THEN(AND([f.FEW(td),  f.SMALL(cs)]),     f.FASTER),
         IF_THEN(AND([f.FEW(td),  f.MEDIUM(cs)]),    f.SIMILAR),
@@ -57,6 +57,6 @@ fuzzy.infer = function (term_delta, cluster_size) {
 
 fuzzy.defuzzify = function(f) {
     return fuzzylogic.Bisector(f, {min: 0.0,
-                                   max: 2.0,
+                                   max: 3.0,
                                    delta: 0.01})
 }

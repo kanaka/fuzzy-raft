@@ -23,14 +23,14 @@ graph.lineChartFile(__dirname + '/sizes.png', sizes,
          sizes.map(fuzzy.VERYLARGE)])
 
 coefficients = []
-for(var x=0.5; x<1.6; x+=0.1) { coefficients.push(x.toFixed(1)) }
+for(var x=1.0; x<3.1; x+=0.1) { coefficients.push(x.toFixed(1)) }
 graph.lineChartFile(__dirname + '/coefficients.png', coefficients,
         [coefficients.map(fuzzy.SLOWER),
          coefficients.map(fuzzy.SIMILAR),
          coefficients.map(fuzzy.FASTER)])
 
 times = []
-for(var x=0.5; x<1.55; x+=0.05) { times.push(x.toFixed(2)) }
+for(var x=1.0; x<3.1; x+=0.1) { times.push(x.toFixed(2)) }
 i1 = fuzzy.infer(1, 3)
 i2 = fuzzy.infer(3, 3)
 i3 = fuzzy.infer(9, 3)
