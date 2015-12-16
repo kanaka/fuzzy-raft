@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+
+    <title>Dynamic Raft Leader Heartbeat and Election Timer Using Fuzzy Logic</title>
+
+    <meta name="description" content="Raft.js extension to adjust the leader heartbeat and election timer using fuzzy logic.">
+    <meta name="author" content="Joel Martin">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+    <link rel="stylesheet" href="reveal.js/css/reveal.css">
+    <link rel="stylesheet" href="reveal.js/css/theme/black.css" id="theme">
+
+    <!-- Code syntax highlighting -->
+    <link rel="stylesheet" href="reveal.js/lib/css/zenburn.css">
+
+    <!-- Printing and PDF exports -->
+    <script>
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = window.location.search.match( /print-pdf/gi ) ? 'reveal.js/css/print/pdf.css' : 'reveal.js/css/print/paper.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    </script>
+
+    <!--[if lt IE 9]>
+    <script src="reveal.js/lib/js/html5shiv.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div class="reveal">
+
+      <!-- Any section element inside of this container is displayed as a slide -->
+      <div class="slides">
+        <section>
+          <h2>Dynamic Raft Leader Heartbeat and Election Timer Using Fuzzy Logic</h2>
+          <p>CSE 6369 - Reasoning with Uncertainty</p>
+          <p>Joel Martin</p>
+          <p>Dec 16, 2015</p>
+          <!--
+          <p><i>Press 's' to show speaker notes</i></p>
+          -->
+          <aside class="notes">
+            <ul>
+              <li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Raft</h2>
+          <ul>
+            <li>Distributed Consensus Algorithm
+            <li>Diego Ongaro and John Ousterhout at Stanford
+            <li>Designed specifically for understandability
+            <li>First published in Spring 2013, finalized in Fall 2014.
+            <li>Already has over 70 partial or full implemntations
+            (including in production)
+            <li>Main site: <a href="https://raft.github.io/">raft.github.io</a>
+          </ul>
+          <aside class="notes">
+            <ul>
+              <li>Raft was Diego Ongaro's PhD dissertation working
+              with John Ousterhout.
+              <li>Already in use in production (e.g. etcd and CoreOS)
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Raft Architecture</h2>
+          <ul>
+            <li>Leader Election
+            <li>Log replication
+            <li>Safety
+          </ul>
+          <aside class="notes">
+            <ul>
+              <li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h3>Raft Architecture - Leader Election</h3>
+          <ul>
+            <li>Each node is in one of three states: follower,
+            candidate, leader
+            <li>Election term: one leader per election term.
+            <li>After election timeout, follower becomes candidate and
+            increases it's election term
+            <li>Candidate requests vote from other nodes
+            <li>Candidate becomes leader upon majority vote
+            <li>Leader maintains leadership with a period heartbeat
+            message to other nodes.
+          </ul>
+          <aside class="notes">
+            <ul>
+              <li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h3>Raft Architecture - Log Replication</h3>
+          <ul>
+            <li>Leader handles all state machine operations (client requests)
+            <li>Leader replicates transaction log entries to other nodes
+            <li>Leader commits an entry by replicating it to a majority of nodes
+            <li>Once a log entry is committed it is then applied to the state machine
+          </ul>
+          <aside class="notes">
+            <ul>
+              <li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h3>Raft Architecture - Safety</h3>
+          <ul>
+            <li>Transaction logs can diverge (due to election
+            while entries are being propagated), but committed entries
+            cannot.
+            <li>Once log entry at given index is applied to the state
+            machine, no other node can apply a different entry for
+            the same log index
+            <li>Clients are notified of completion only after the log
+            entry is applied.
+          </ul>
+          <aside class="notes">
+            <ul>
+              <li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Raft.js</h2>
+          <ul>
+            <li>JavaScript implementation of Raft
+            <li>Created basic implementation in Summer 2013 as personal project
+            <li>Created an online visualization for research project with David Levine (Fall 2013)
+            <li><a href="index.html" target=_new>Visualization Demo</a><br>
+          </ul>
+          <aside class="notes">
+            <ul>
+              <li>Demo: describe node and timeline
+              <li>Demo: initialize sets name and schedules election
+              timer
+              <li>Demo: requestVote -&gt; saveFn (save who about to
+              vote for this term)
+              <li>Demo: appendEntries also serve as heartbeat messages
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Raft.js + WebRTC</h2>
+          <ul>
+            <li>Use WebRTC browser-to-browser protocol
+            <li>Distributed consensus across browsers
+            <li>Continuing research with David Levine (2015)
+            <li>Network conditions are dynamic
+            <li>Leader heartbeat / election timer also need to be dynamic
+          </ul>
+          <aside class="notes">
+            <ul>
+              <li>In Raft paper, election timer is static because
+              intented to be used in a data center where network
+              conditions are well known.
+              <li>However, in browser context, network conditions are
+              dynamic and unknown ahead of time so we learned that the
+              timer values need to be dynamic to compensate.
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h3>Raft.js + Fuzzy Logic Election Timer</h3>
+          <ul>
+            <li>Add a time value to every RPC to measure latency
+            <li>Use fuzzy logic to generate coefficient (C) based on:
+            <ul>
+              <li>Cluster size
+              <li>Number of recent elections
+            </ul>
+            <li>Formulas:
+            <ul>
+              <li>leader_heartbeat = C * round_trip_latency
+              <li>election_timeout = 5 * leader_heartbeat
+            </ul>
+          </ul>
+          <aside class="notes">
+            <ul>
+              <li>Just the network latency is not enough because it
+              doesn't account for cluster load, packet drops, overhead
+              due to cluster size, etc.
+              <li>Size of cluster increases the overhead and network
+              congestion
+              <li>Accounting for recent elections covers other
+              unexpected known and unknown problems.
+              <li>E.g. If cluster is having leader elections
+              too frequently, then slow down the leader hearbeat and
+              election timer to give next leader opportunity to make
+              progress.
+              <li>Might be CPU load on the leader due to intensive
+              state machine operations causing the timeouts
+              <li>Could be occasional delayed or dropped packets
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Fuzzy Logic Rules</h2>
+          <p>Where <font color="yellow">td</font> = term delta,
+                   <font color="yellow">cs</font> = cluster_size,
+                   <font color="yellow">C</font> = timer coefficient</p>
+          <pre><code class="clojure" data-trim contenteditable style="max-height: 500px">
+if (td  in FEW) and (cs in VERYSMALL) then (C in FASTER)
+if (td  in FEW) and (cs in SMALL)     then (C in FASTER)
+if (td  in FEW) and (cs in MEDIUM)    then (C in SIMILAR)
+if (td  in FEW) and (cs in LARGE)     then (C in SIMILAR)
+if (td  in FEW) and (cs in VERYLARGE) then (C in SLOWER)
+
+if (td in SOME) and (cs in VERYSMALL) then (C in FASTER)
+if (td in SOME) and (cs in SMALL)     then (C in SIMILAR)
+if (td in SOME) and (cs in MEDIUM)    then (C in SIMILAR)
+if (td in SOME) and (cs in LARGE)     then (C in SIMILAR)
+if (td in SOME) and (cs in VERYLARGE) then (C in SLOWER)
+
+if (td in MANY) and (cs in VERYSMALL) then (C in SIMILAR)
+if (td in MANY) and (cs in SMALL)     then (C in SLOWER)
+if (td in MANY) and (cs in MEDIUM)    then (C in SLOWER)
+if (td in MANY) and (cs in LARGE)     then (C in SLOWER)
+if (td in MANY) and (cs in VERYLARGE) then (C in SLOWER)
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>term_delta Fuzzy Set</h2>
+          <img src="imgs/deltas.png"></img>
+        </section>
+
+        <section>
+          <h2>cluster_size Fuzzy Set</h2>
+          <img src="imgs/sizes.png"></img>
+        </section>
+
+        <section>
+          <h2>Timer Coefficient Fuzzy Set</h2>
+          <img src="imgs/coefficients.png"></img>
+        </section>
+
+        <section>
+          <h2>Output Fuzzy Set (C)</h2>
+
+          <section>
+            <img src="imgs/times_1_3.png"></img>
+            <p>term_delta = 1, cluster_size = 3, bisector: 0.65</p>
+          </section>
+
+          <section>
+            <img src="imgs/times_3_3.png"></img>
+            <p>term_delta = 3, cluster_size = 3, bisector: 0.81</p>
+          </section>
+
+          <section>
+            <img src="imgs/times_3_13.png"></img>
+            <p>term_delta = 3, cluster_size = 13, bisector: 1.00</p>
+          </section>
+
+          <section>
+            <img src="imgs/times_9_21.png"></img>
+            <p>term_delta = 9, cluster_size = 21, bisector: 1.33</p>
+          </section>
+        </section>
+
+        <section>
+          <h2>Demo of Raft.js + Fuzzy Timer</h2>
+          <ul>
+            <li><a href="fuzzy.html?5" target=_new>5 Node Visualation</a><br>
+            <li><a href="fuzzy.html?7" target=_new>7 Node Visualation</a><br>
+            <li><a href="fuzzy.html?9" target=_new>9 Node Visualation</a><br>
+          </ul>
+        </section>
+
+        <section>
+          <section>
+            <h2>Fuzzy Logic Code</h2>
+          </section>
+
+          <section>
+            <h2>Fuzzy Logic Library</h2>
+            <pre><code class="javascript" data-trim contenteditable style="max-height: 500px">
+function Trapezoid(a, b, c, d) {
+    return function(x) {
+        if      (x &lt; a)  { return 0.0 }
+        else if (x &lt; b)  { return (x-a) / (b-a) }
+        else if (x &lt;= c) { return 1.0 }
+        else if (x &lt; d)  { return (d-x) / (d-c) }
+        else             { return 0.0 }
+    }
+}
+
+function _call_or_const(fn, arg) {
+    if (typeof fn === 'function') {
+        return fn(arg);
+    } else {
+        return fn;
+    }
+}
+
+function ReduceWith(f, fn_val_list) {
+    return function(x) {
+        var acc = _call_or_const(fn_val_list[0], x)
+        for (var i=1; i&lt;fn_val_list.length; i++) {
+            var acc = f(acc, _call_or_const(fn_val_list[i], x))
+        }
+        return acc
+    }
+}
+
+function OR(fn_list) {
+    return ReduceWith(Math.max, fn_list)
+}
+
+function AND(fn_list) {
+    return ReduceWith(Math.min, fn_list)
+}
+
+function IF_THEN(input, output) {
+    return function(x) {
+        var input_val = _call_or_const(input, x);
+        var min_fn = function(a, b) {
+            return Math.min(input_val, a, b)
+        }
+        return ReduceWith(min_fn, [1.0, output])(x);
+    }
+}
+
+
+
+function Area(fn, opts) {
+    if (typeof opts === 'undefined') { opts = {} }
+    if (!('min' in opts)) { opts.min = 0 }
+    if (!('max' in opts)) { opts.max = 100 }
+    if (!('delta' in opts)) { opts.delta = 0.1 }
+
+    var area = 0
+    for (var x=opts.min; x&lt;opts.max; x+=opts.delta) {
+        area = area + fn(x)*opts.delta
+    }
+    return area
+}
+
+function Bisector(fn, opts) {
+    if (typeof opts === 'undefined') { opts = {} }
+
+    var total_area = Area(fn, opts) // Area sets min, max, delta
+    var x = 0,
+        left_area = 0
+    for (x=opts.min; x&lt;opts.max; x+=opts.delta) {
+        left_area = left_area + fn(x)*opts.delta
+        if (left_area &gt;= total_area/2) {
+            break;
+        }
+    }
+    return x;
+}
+            </code></pre>
+          </section>
+  
+          <section>
+            <h2>Fuzzy Logic Raft Sets / Rules</h2>
+            <pre><code class="javascript" data-trim contenteditable style="max-height: 500px">
+// term_delta:
+// difference in term number between most current term
+// and the term 20 log entries in the past
+fuzzy.FEW  = fuzzylogic.Trapezoid(0,0,1,3)
+fuzzy.SOME = fuzzylogic.Trapezoid(1,3,7,9)
+fuzzy.MANY = fuzzylogic.Trapezoid(7,9,20,20)
+
+// cluster_size:
+// the number of nodes in the cluster
+fuzzy.VERYSMALL = fuzzylogic.Trapezoid(0,0,3,7)
+fuzzy.SMALL     = fuzzylogic.Trapezoid(1,4,6,9)
+fuzzy.MEDIUM    = fuzzylogic.Trapezoid(5,9,17,23)
+fuzzy.LARGE     = fuzzylogic.Trapezoid(17,23,29,38)
+fuzzy.VERYLARGE = fuzzylogic.Trapezoid(29,38,Infinity,Infinity)
+
+// result:
+// multiplier on the base election timer
+fuzzy.FASTER  = fuzzylogic.Trapezoid(0.50, 0.50, 0.70, 0.90)
+fuzzy.SIMILAR = fuzzylogic.Trapezoid(0.70, 0.90, 1.10, 1.30)
+fuzzy.SLOWER  = fuzzylogic.Trapezoid(1.10, 1.30, 1.50, 1.50)
+
+fuzzy.infer = function (term_delta, cluster_size) {
+    var AND = fuzzylogic.AND, OR = fuzzylogic.OR,
+        IF_THEN = fuzzylogic.IF_THEN,
+        f = fuzzy, td = term_delta, cs = cluster_size
+
+    return fl.OR([
+        IF_THEN(AND([f.FEW(td),  f.VERYSMALL(cs)]), f.FASTER),
+        IF_THEN(AND([f.FEW(td),  f.SMALL(cs)]),     f.FASTER),
+        IF_THEN(AND([f.FEW(td),  f.MEDIUM(cs)]),    f.SIMILAR),
+        IF_THEN(AND([f.FEW(td),  f.LARGE(cs)]),     f.SIMILAR),
+        IF_THEN(AND([f.FEW(td),  f.VERYLARGE(cs)]), f.SLOWER),
+
+        IF_THEN(AND([f.SOME(td), f.VERYSMALL(cs)]), f.FASTER),
+        IF_THEN(AND([f.SOME(td), f.SMALL(cs)]),     f.SIMILAR),
+        IF_THEN(AND([f.SOME(td), f.MEDIUM(cs)]),    f.SIMILAR),
+        IF_THEN(AND([f.SOME(td), f.LARGE(cs)]),     f.SIMILAR),
+        IF_THEN(AND([f.SOME(td), f.VERYLARGE(cs)]), f.SLOWER),
+
+        IF_THEN(AND([f.MANY(td), f.VERYSMALL(cs)]), f.SIMILAR),
+        IF_THEN(AND([f.MANY(td), f.SMALL(cs)]),     f.SLOWER),
+        IF_THEN(AND([f.MANY(td), f.MEDIUM(cs)]),    f.SLOWER),
+        IF_THEN(AND([f.MANY(td), f.LARGE(cs)]),     f.SLOWER),
+        IF_THEN(AND([f.MANY(td), f.VERYLARGE(cs)]), f.SLOWER)
+    ])
+}
+
+fuzzy.defuzzify = function(f) {
+    return fuzzylogic.Bisector(f, {min: 0.0,
+                                   max: 2.0,
+                                   delta: 0.01})
+}
+            </code></pre>
+          </section>
+
+          <aside class="notes">
+            <ul>
+              <li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Future Work</h2>
+          <ul>
+            <li>Calculate leader heartbeat value and election
+            timeout value separately.
+            <li>Integrate and test with the Raft+WebRTC project.
+          </ul>
+          <aside class="notes">
+            <ul>
+              <li>
+            </ul>
+          </aside>
+        </section>
+
+        <!--
+        <section>
+          <h2>Template</h2>
+          <aside class="notes">
+            <ul>
+              <li>
+            </ul>
+          </aside>
+        </section>
+        -->
+
+        <section>
+          <h2>Questions?</h2>
+          <div class="fragment">
+          <hr>
+          <ul>
+            <li><a href="https://github.com/kanaka/fuzzy-raft">https://github.com/kanaka/fuzzy-raft</a>
+          </ul>
+          </div>
+          <aside class="notes">
+            <ul>
+              <li>This presentation is located here.
+            </ul>
+          </aside>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="reveal.js/lib/js/head.min.js"></script>
+    <script src="reveal.js/js/reveal.js"></script>
+
+    <script>
+
+      // Full list of configuration options available at:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        controls: true,
+        progress: true,
+        history: true,
+        center: true,
+
+        transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+        // Optional reveal.js plugins
+        dependencies: [
+          { src: 'reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: 'reveal.js/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: 'reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: 'reveal.js/plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+          { src: 'reveal.js/plugin/zoom-js/zoom.js', async: true },
+          { src: 'reveal.js/plugin/notes/notes.js', async: true }
+        ]
+      });
+
+    </script>
+
+  </body>
+</html>
