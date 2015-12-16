@@ -44,7 +44,9 @@ function AND(fn_list) {
 function IF_THEN(input, output) {
     return function(x) {
         var input_val = _call_or_const(input, x);
-        var min_fn = function(a, b) { return Math.min(input_val, a, b) }
+        var min_fn = function(a, b) {
+            return Math.min(input_val, a, b)
+        }
         return ReduceWith(min_fn, [1.0, output])(x);
     }
 }
