@@ -9,6 +9,7 @@ if (typeof module === 'undefined') {
         fs = require('fs');
 }
 
+
 var colors = [
     "151,187,205",
     "187,205,151",
@@ -26,7 +27,11 @@ function lineChart(canvas, labels, data, opts) {
         lopts = {
             pointStrokeColor: "#fff",
             pointHighlightFill: "#fff",
-            bezierCurve : false
+            bezierCurve : false,
+            scaleOverride: true,
+            scaleSteps: 4,
+            scaleStepWidth: 0.25,
+            scaleStartValue: 0,
         },
         datasets = [];
 
@@ -49,7 +54,7 @@ function lineChart(canvas, labels, data, opts) {
 }
 
 function lineChartFile(file, labels, data, opts) {
-    var canvas = new Canvas(800, 800);
+    var canvas = new Canvas(600, 400);
     lineChart(canvas, labels, data, opts);
     canvas.toBuffer(function (err, buf) {
         if (err) throw err;

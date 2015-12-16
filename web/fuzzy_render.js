@@ -347,7 +347,7 @@ function resetNode(id) {
 
 var chartTicks = [];
 var chartData = [];
-for(var x=0.5; x<1.5; x+=0.05) {
+for(var x=0.5; x<1.55; x+=0.05) {
     chartTicks.push(x.toFixed(3));
     chartData = [[]];
 }
@@ -369,7 +369,9 @@ function rpcCallback(self, data) {
         latencies = rpcLatencies[id],
         tot_latency = latencies.reduce(function(a,b) {return a+b}),
         avg_latency = tot_latency/latencies.length,
-        heartbeat_time = parseInt(4 * avg_latency * defuzzed);
+        // set the election timer to 2 roundtrips (2 * 2) multiplied
+        // by the defuzzified fuzzy coefficient value
+        heartbeat_time = parseInt(2 * 2 * avg_latency * defuzzed);
 
     // Update the values
     self.opts.heartbeatTime = heartbeat_time;
