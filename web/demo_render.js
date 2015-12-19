@@ -266,6 +266,21 @@ stepButton.onclick = function () {
     updateD3();
 };
 
+
+document.onkeyup = function (e) {
+    if ((e.keyCode === 39) || (e.keyCode === 40) || (e.keyCode === 13)) {
+        tqueue.step();
+        updateTasks();
+        updateD3();
+        e.stopPropagation();
+        return false;
+    }
+    return true;
+}
+
+
+
+
 updateTasks();
 updateD3();
 
